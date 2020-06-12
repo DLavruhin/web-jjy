@@ -230,7 +230,7 @@
         }
     });
 
-    let nowtime = document.getElementById('time');
+    let nowTime = document.getElementById('time');
     let canvas = document.getElementById('canvas');
     let ctx2d = canvas.getContext('2d');
     let w = canvas.width;
@@ -240,7 +240,7 @@
 
     function render() {
         //todo заформатить в таймзону
-        nowtime.innerText = (new Date() + tokioDiff).toString();
+        nowTime.innerText = new Date().toString();
 
         let i;
         ctx2d.clearRect(0, 0, w, h);
