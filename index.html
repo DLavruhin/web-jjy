@@ -1,26 +1,30 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <title>Web JJY</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <style>
-      canvas {
-        width: 100%;
-      }
+        canvas {
+            width: 100%;
+        }
     </style>
-  </head>
-  <body>
-    <h1>Эмуляция сигналов радиосинхронихации часов (Япония, Токио)</h1>
-    <p>
-      Нажмите "Start" для начала
-    </p>
+</head>
+<body>
+<h1>Эмуляция сигналов радиосинхронихации часов (Япония, Токио)</h1>
+<p>
+    <br>
+    <a href="https://github.com/DLavruhin/web-jjy/blob/gh-pages/README.md">Краткая инструкция</a>
+    <br>
+    Нажмите "Start" для начала воспроизведения сигналов радиосинхронизации
+</p>
 
-    <button id="control-button">Start</button> <span id="time"></span>
-    <div>
-      <canvas id="canvas" width="1000" height="200"></canvas>
-    </div>
-    <label hidden="true"><input id="summer-time" type="checkbox">Летнее время</label>
-    <script src="jjy.js"></script>
+<button id="control-button">Start</button>
+<span id="time"></span>
+<div>
+    <canvas id="canvas" width="1000" height="200"></canvas>
+</div>
+<label hidden="true"><input id="summer-time" type="checkbox">Летнее время</label>
+<script src="jjy.js"></script>
 
-  </body>
+</body>
 </html>
