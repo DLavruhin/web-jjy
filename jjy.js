@@ -1,21 +1,23 @@
-(function() {
-    var freq = 13333;
-    var ctx;
-    var signal;
+(function () {
+    const freq = 13333;
+    let ctx;
+    let signal;
+    const tokioDiff = -21600000;
 
-    var AudioContext = window.AudioContext || window.webkitAudioContext;
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
 
-    // うるう秒挿入日一覧(日本時)
-    var plus_leapsecond_list = [
-        new Date(2017, 0, 1, 9)
+    // Високосные года(Москва)
+    // todo - по часовому поясу
+    const plusLeapSecondList = [
+        new Date(2017, 0, 1, 3)
     ];
 
     // うるう秒 +1:一ヶ月以内に挿入 -1:一ヶ月以内に削除
-    function getleapsecond() {
-        var now = Date.now();
-        for(var i = 0; i < plus_leapsecond_list.length; i++) {
-            var diff = plus_leapsecond_list[i] - now;
-            if (diff > 0 && diff <= 31*24*60*60*1000) {
+    function getLeapSecond() {
+        let now = Date.now() + tokioDiff;
+        for (let i = 0; i < plusLeapSecondList.length; i++) {
+            let diff = plusLeapSecondList[i] - now;
+            if (diff > 0 && diff <= 31 * 24 * 60 * 60 * 1000) {
                 return 1;
             }
         }
@@ -23,24 +25,24 @@
     }
 
     function schedule(date, summer_time) {
-        var now = Date.now();
-        var start = date.getTime();
-        var offset = (start - now) / 1000 + ctx.currentTime;
-        var minute = date.getMinutes();
-        var hour = date.getHours();
-        var fullyear = date.getFullYear();
-        var year = fullyear % 100;
-        var week_day = date.getDay();
-        var year_day = (new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime() - new Date(date.getFullYear(), 0, 1).getTime()) / (24*60*60*1000) + 1;
-        var array = [];
-        var leapsecond = getleapsecond();
+        let now = Date.now() + tokioDiff;
+        let start = date.getTime();
+        let offset = (start - now) / 1000 + ctx.currentTime;
+        let minute = date.getMinutes();
+        let hour = date.getHours();
+        let fullYear = date.getFullYear();
+        let year = fullYear % 100;
+        let week_day = date.getDay();
+        let year_day = (new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime() - new Date(date.getFullYear(), 0, 1).getTime()) / (24 * 60 * 60 * 1000) + 1;
+        let array = [];
+        let leapSecond = getLeapSecond();
 
         // 毎分s秒の位置のマーカーを出力する
         function marker(s) {
             array.push(0.2);
-            var t = s + offset;
+            let t = s + offset;
             if (t < 0) return;
-            var osc = ctx.createOscillator();
+            let osc = ctx.createOscillator();
             osc.type = "square";
             osc.frequency.value = freq;
             osc.start(t);
@@ -49,17 +51,17 @@
         }
 
         // パリティービット
-        var pa;
+        let pa;
 
         // bitを出力し、パリティビットを更新する
         function bit(s, value, weight) {
-            var b = value >= weight;
+            let b = value >= weight;
             value -= b ? weight : 0;
             pa += b ? 1 : 0;
             array.push(b ? 0.5 : 0.8);
-            var t = s + offset;
+            let t = s + offset;
             if (t < 0) return value;
-            var osc = ctx.createOscillator();
+            let osc = ctx.createOscillator();
             osc.type = "square";
             osc.frequency.value = freq;
             osc.start(t);
@@ -72,15 +74,15 @@
 
         // 分
         pa = 0;
-        minute = bit(1, minute,  40);
-        minute = bit(2, minute,  20);
-        minute = bit(3, minute,  10);
-        minute = bit(4, minute,  16);
-        minute = bit(5, minute,  8);
-        minute = bit(6, minute,  4);
-        minute = bit(7, minute,  2);
-        minute = bit(8, minute,  1);
-        var pa2 = pa;
+        minute = bit(1, minute, 40);
+        minute = bit(2, minute, 20);
+        minute = bit(3, minute, 10);
+        minute = bit(4, minute, 16);
+        minute = bit(5, minute, 8);
+        minute = bit(6, minute, 4);
+        minute = bit(7, minute, 2);
+        bit(8, minute, 1);
+        let pa2 = pa;
 
         marker(9); // P1
 
@@ -94,8 +96,8 @@
         hour = bit(15, hour, 8);
         hour = bit(16, hour, 4);
         hour = bit(17, hour, 2);
-        hour = bit(18, hour, 1);
-        var pa1 = pa;
+        bit(18, hour, 1);
+        let pa1 = pa;
 
         marker(19); // P2
 
@@ -115,7 +117,7 @@
         year_day = bit(30, year_day, 8);
         year_day = bit(31, year_day, 4);
         year_day = bit(32, year_day, 2);
-        year_day = bit(33, year_day, 1);
+        bit(33, year_day, 1);
 
         bit(34, 0, 1); // 0
         bit(35, 0, 1); // 0
@@ -141,21 +143,21 @@
         year = bit(45, year, 8);
         year = bit(46, year, 4);
         year = bit(47, year, 2);
-        year = bit(48, year, 1);
+        bit(48, year, 1);
 
         marker(49); // P5
 
         // 曜日
         week_day = bit(50, week_day, 4);
         week_day = bit(51, week_day, 2);
-        week_day = bit(52, week_day, 1);
+        bit(52, week_day, 1);
 
         // うるう秒
-        if (leapsecond === 0) {
+        if (leapSecond === 0) {
             // うるう秒なし
             bit(53, 0, 1); // 0
             bit(54, 0, 1); // 0
-        } else if (leapsecond > 0) {
+        } else if (leapSecond > 0) {
             // 正のうるう秒
             bit(53, 1, 1); // 1
             bit(54, 1, 1); // 1
@@ -175,22 +177,22 @@
         return array;
     }
 
-    var intervalId;
-    var summer_time_input = document.getElementById("summer-time")
+    let intervalId;
+    let summer_time_input = document.getElementById("summer-time")
 
     function start() {
         ctx = new AudioContext();
-        var now = Date.now();
-        var t = Math.floor(now / (60 * 1000)) * 60 * 1000;
-        var next = t + 60 * 1000;
-        var delay = next - now - 1000; // 毎分0秒ピッタリの少し前にタイマーをセットする
+        let now = Date.now() + tokioDiff;
+        let t = Math.floor(now / (60 * 1000)) * 60 * 1000;
+        let next = t + 60 * 1000;
+        let delay = next - now - 1000; // 毎分0秒ピッタリの少し前にタイマーをセットする
         if (delay < 0) {
             t = next;
             delay += 60 * 1000;
         }
         signal = schedule(new Date(t), summer_time_input.checked);
 
-        setTimeout(function() {
+        setTimeout(function () {
             interval();
             intervalId = setInterval(interval, 60 * 1000);
         }, delay);
@@ -213,10 +215,10 @@
         signal = undefined;
     }
 
-    var control_button = document.getElementById("control-button");
-    var play_flag = false;
+    let control_button = document.getElementById("control-button");
+    let play_flag = false;
 
-    control_button.addEventListener('click', function() {
+    control_button.addEventListener('click', function () {
         if (play_flag) {
             control_button.innerText = "Start";
             play_flag = false;
@@ -228,26 +230,28 @@
         }
     });
 
-    var nowtime = document.getElementById('time');
-    var canvas = document.getElementById('canvas');
-    var ctx2d = canvas.getContext('2d');
-    var w = canvas.width;
-    var h = canvas.height;
+    let nowtime = document.getElementById('time');
+    let canvas = document.getElementById('canvas');
+    let ctx2d = canvas.getContext('2d');
+    let w = canvas.width;
+    let h = canvas.height;
 
     render();
-    function render() {
-        nowtime.innerText = new Date().toString();
 
-        var i;
+    function render() {
+        //todo заформатить в таймзону
+        nowtime.innerText = (new Date() + tokioDiff).toString();
+
+        let i;
         ctx2d.clearRect(0, 0, w, h);
         if (!signal) {
             requestAnimationFrame(render);
             return;
         }
-        var now = Math.floor(Date.now() / 1000) % 60;
+        let now = Math.floor((Date.now() + tokioDiff) / 1000) % 60;
 
         for (i = 0; i < signal.length; i++) {
-            if (i == now) {
+            if (i === now) {
                 if (signal[i] < 0.3) ctx2d.fillStyle = "#FF0000";
                 else if (signal[i] < 0.7) ctx2d.fillStyle = "#FFFF00";
                 else ctx2d.fillStyle = "#00FF00";
@@ -256,7 +260,7 @@
                 else if (signal[i] < 0.7) ctx2d.fillStyle = "#7F7F00";
                 else ctx2d.fillStyle = "#007F00";
             }
-            ctx2d.fillRect((i%30)*30, Math.floor(i/30)*100, 30 * signal[i], 80);
+            ctx2d.fillRect((i % 30) * 30, Math.floor(i / 30) * 100, 30 * signal[i], 80);
         }
         requestAnimationFrame(render);
     }
